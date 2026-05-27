@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
 
-const CONTRACT_ADDRESS = "PASTE_NEW_CONTRACT_ADDRESS";
+const CONTRACT_ADDRESS = "0x0FdF4894a3b7C5a101686829063BE52Ad45bcfb7";
 
 const ABI = [
   "function mintCapsule(string memory metadataURI,uint256 unlockDate) public",
