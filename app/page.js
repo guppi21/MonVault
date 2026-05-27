@@ -69,18 +69,20 @@ export default function Home() {
       formData,
       {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+          Authorization:
+            `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
         },
       }
     );
 
     const imageHash = imageUpload.data.IpfsHash;
 
-    const imageURL = `https://ipfs.io/ipfs/${imageHash}`;
+    const imageURL =
+      `https://ipfs.io/ipfs/${imageHash}`;
 
     const metadata = {
       name: "MonVault Capsule",
-      description: "NFT Time Capsule on Monad",
+      description: "NFT Time Capsule",
       image: imageURL,
     };
 
@@ -89,7 +91,8 @@ export default function Home() {
       metadata,
       {
         headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+          Authorization:
+            `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
         },
       }
     );
@@ -99,17 +102,6 @@ export default function Home() {
         `https://ipfs.io/ipfs/${metadataUpload.data.IpfsHash}`,
       imageURL,
     };
-  }
-
-  function playRevealSound() {
-
-    const audio = new Audio(
-      "https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"
-    );
-
-    audio.volume = 0.7;
-
-    audio.play();
   }
 
   function getRemainingTime(unlockDate) {
@@ -129,11 +121,23 @@ export default function Home() {
     return `${days}d ${hours}h ${mins}m`;
   }
 
+  function playRevealSound() {
+
+    const audio = new Audio(
+      "https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"
+    );
+
+    audio.volume = 0.7;
+
+    audio.play();
+  }
+
   function loadLocalCapsules(currentWallet) {
 
-    const saved = localStorage.getItem(
-      `capsules_${currentWallet}`
-    );
+    const saved =
+      localStorage.getItem(
+        `capsules_${currentWallet}`
+      );
 
     if (saved) {
       setCapsules(JSON.parse(saved));
@@ -161,27 +165,32 @@ export default function Home() {
 
       setLoading(true);
 
-      const uploaded = await uploadToIPFS();
+      const uploaded =
+        await uploadToIPFS();
 
       const browserProvider =
         new ethers.BrowserProvider(window.ethereum);
 
-      const signer = await browserProvider.getSigner();
+      const signer =
+        await browserProvider.getSigner();
 
-      const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        ABI,
-        signer
-      );
+      const contract =
+        new ethers.Contract(
+          CONTRACT_ADDRESS,
+          ABI,
+          signer
+        );
 
-      const unlockTimestamp = Math.floor(
-        Date.parse(unlockDate) / 1000
-      );
+      const unlockTimestamp =
+        Math.floor(
+          Date.parse(unlockDate) / 1000
+        );
 
-      const tx = await contract.mintCapsule(
-        uploaded.metadataURI,
-        unlockTimestamp
-      );
+      const tx =
+        await contract.mintCapsule(
+          uploaded.metadataURI,
+          unlockTimestamp
+        );
 
       await tx.wait();
 
@@ -344,7 +353,9 @@ export default function Home() {
                 "0 0 30px rgba(131,110,249,0.45)",
             }}
           >
-            {loading ? "Minting..." : "Mint Time Capsule"}
+            {loading
+              ? "Minting..."
+              : "Mint Time Capsule"}
           </button>
 
           {preview && (
@@ -430,8 +441,13 @@ export default function Home() {
                           setShowRevealEffect(true);
 
                           setTimeout(() => {
+
                             setShowRevealEffect(false);
-                            setActiveImage(capsule.image);
+
+                            setActiveImage(
+                              capsule.image
+                            );
+
                           }, 1200);
 
                         }
@@ -447,7 +463,7 @@ export default function Home() {
                         cursor: unlocked
                           ? "pointer"
                           : "default",
-                        transition: "0.4s",
+                        transition: "0.3s",
                       }}
                     />
 
@@ -500,8 +516,13 @@ export default function Home() {
                         setShowRevealEffect(true);
 
                         setTimeout(() => {
+
                           setShowRevealEffect(false);
-                          setActiveImage(capsule.image);
+
+                          setActiveImage(
+                            capsule.image
+                          );
+
                         }, 1200);
 
                       }}
@@ -581,38 +602,44 @@ export default function Home() {
       )}
 
       {activeImage && (
-        <div
-          onClick={() => setActiveImage(null)}
+
+      <div
+        onClick={() =>
+          setActiveImage(null)
+        }
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background:
+            "rgba(0,0,0,0.88)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: "20px",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+
+        <img
+          src={activeImage}
+          alt="fullscreen"
           style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(0,0,0,0.88)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: "20px",
-            backdropFilter: "blur(8px)",
+            maxWidth: "92%",
+            maxHeight: "92%",
+            borderRadius: "28px",
+            boxShadow:
+              "0 0 50px rgba(131,110,249,0.45)",
           }}
-        >
-          <img
-            src={activeImage}
-            alt="fullscreen"
-            style={{
-              maxWidth: "92%",
-              maxHeight: "92%",
-              borderRadius: "28px",
-              boxShadow:
-                "0 0 50px rgba(131,110,249,0.45)",
-            }}
-          />
-        </div>
+        />
+
+      </div>
+
       )}
 
     </main>
   );
 }
-
