@@ -1,16 +1,37 @@
+# MonVault — Stable Demo Version (Option 1)
+
+This version:
+
+* keeps minting on-chain ✅
+* uploads images to IPFS ✅
+* stores capsule gallery locally ✅
+* shows blurred images + timers ✅
+* survives page refreshes ✅
+* avoids ALL broken contract read issues ✅
+
+---
+
+# STEP 1
+
+Replace your ENTIRE:
+
+```txt
+app/page.js
+```
+
+with THIS:
+
+```jsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
 
-const CONTRACT_ADDRESS = "0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8";
+const CONTRACT_ADDRESS = "0xfC713AAB72F97671bADcb14669248C4e922fe2Bb";
 
 const ABI = [
-  "function mintCapsule(string memory metadataURI,uint256 unlockDate) public",
-  "function nextTokenId() view returns(uint256)",
-  "function ownerOf(uint256 tokenId) view returns(address)",
-  "function getCapsule(uint256 tokenId) public view returns(string memory,uint256,uint256)"
+  "function mintCapsule(string memory metadataURI,uint256 unlockDate) public"
 ];
 
 export default function Home() {
@@ -19,8 +40,8 @@ export default function Home() {
   const [unlockDate, setUnlockDate] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState("");
-  const [capsules, setCapsules] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [capsules, setCapsules] = useState([]);
 
   async function connectWallet() {
 
@@ -34,6 +55,8 @@ export default function Home() {
     });
 
     setWallet(accounts[0]);
+
+    loadLocalCapsules(accounts[0]);
   }
 
   function handleImage(e) {
@@ -75,10 +98,13 @@ export default function Home() {
 
     const imageHash = imageUpload.data.IpfsHash;
 
+    const imageURL =
+      `https://ipfs.io/ipfs/${imageHash}`;
+
     const metadata = {
       name: "MonVault Capsule",
       description: "NFT Time Capsule",
-      image: `ipfs://${imageHash}`,
+      image: imageURL,
     };
 
     const metadataUpload = await axios.post(
@@ -91,7 +117,11 @@ export default function Home() {
       }
     );
 
-    return `ipfs://${metadataUpload.data.IpfsHash}`;
+    return {
+      metadataURI:
+        `https://ipfs.io/ipfs/${metadataUpload.data.IpfsHash}`,
+      imageURL,
+    };
   }
 
   function getRemainingTime(unlockDate) {
@@ -111,108 +141,15 @@ export default function Home() {
     return `${days}d ${hours}h ${mins}m`;
   }
 
-  async function loadCapsules(currentWallet) {
+  function loadLocalCapsules(currentWallet) {
 
-    try {
-
-      const provider = new ethers.JsonRpcProvider(
-        "https://testnet-rpc.monad.xyz"
+    const saved =
+      localStorage.getItem(
+        `capsules_${currentWallet}`
       );
 
-      const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        ABI,
-        provider
-      );
-
-      const total = await contract.nextTokenId();
-
-      const items = [];
-
-      for (let i = 1; i <= Number(total); i++) {
-
-        try {
-
-          const owner = await contract.ownerOf(i);
-
-          if (
-            owner.toLowerCase() ===
-            currentWallet.toLowerCase()
-          ) {
-
-            const capsule =
-              await contract.getCapsule(i);
-
-            let metadataURL = capsule[0];
-
-            if (
-              metadataURL.startsWith("ipfs://")
-            ) {
-              metadataURL =
-                metadataURL.replace(
-                  "ipfs://",
-                  "https://ipfs.io/ipfs/"
-                );
-            }
-
-            let imageURL =
-              "https://placehold.co/600x600/836EF9/FFFFFF/png?text=MonVault";
-
-            try {
-
-              const metadata = await fetch(
-                metadataURL
-              ).then((res) => res.json());
-
-              imageURL = metadata.image;
-
-              if (
-                imageURL.startsWith("ipfs://")
-              ) {
-                imageURL =
-                  imageURL.replace(
-                    "ipfs://",
-                    "https://ipfs.io/ipfs/"
-                  );
-              }
-
-            } catch (err) {
-
-              console.log(
-                "Metadata error:",
-                err
-              );
-
-            }
-
-            items.push({
-              tokenId: i,
-              image: imageURL,
-              unlockDate: Number(capsule[1]),
-            });
-
-          }
-
-        } catch (err) {
-
-          console.log(
-            "Token scan error:",
-            err
-          );
-
-        }
-
-      }
-
-      setCapsules(items.reverse());
-
-    } catch (err) {
-
-      console.log(
-        "Load capsules error:",
-        err
-      );
-
+    if (saved) {
+      setCapsules(JSON.parse(saved));
     }
   }
 
@@ -237,33 +174,54 @@ export default function Home() {
 
       setLoading(true);
 
-      const metadataURI = await uploadToIPFS();
+      const uploaded =
+        await uploadToIPFS();
 
       const browserProvider =
         new ethers.BrowserProvider(window.ethereum);
 
-      const signer = await browserProvider.getSigner();
+      const signer =
+        await browserProvider.getSigner();
 
-      const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        ABI,
-        signer
-      );
+      const contract =
+        new ethers.Contract(
+          CONTRACT_ADDRESS,
+          ABI,
+          signer
+        );
 
-      const unlockTimestamp = Math.floor(
-        Date.parse(unlockDate) / 1000
-      );
+      const unlockTimestamp =
+        Math.floor(
+          Date.parse(unlockDate) / 1000
+        );
 
-      const tx = await contract.mintCapsule(
-        metadataURI,
-        unlockTimestamp
-      );
+      const tx =
+        await contract.mintCapsule(
+          uploaded.metadataURI,
+          unlockTimestamp
+        );
 
       await tx.wait();
 
-      alert("Capsule Minted!");
+      const newCapsule = {
+        id: Date.now(),
+        image: uploaded.imageURL,
+        unlockDate: unlockTimestamp,
+      };
 
-      loadCapsules(wallet);
+      const updatedCapsules = [
+        newCapsule,
+        ...capsules,
+      ];
+
+      setCapsules(updatedCapsules);
+
+      localStorage.setItem(
+        `capsules_${wallet}`,
+        JSON.stringify(updatedCapsules)
+      );
+
+      alert("Capsule Minted!");
 
     } catch (err) {
 
@@ -285,7 +243,7 @@ export default function Home() {
   useEffect(() => {
 
     if (wallet) {
-      loadCapsules(wallet);
+      loadLocalCapsules(wallet);
     }
 
   }, [wallet]);
@@ -365,7 +323,9 @@ export default function Home() {
             <input
               type="datetime-local"
               value={unlockDate}
-              onChange={(e) => setUnlockDate(e.target.value)}
+              onChange={(e) =>
+                setUnlockDate(e.target.value)
+              }
               style={{
                 width: "100%",
                 padding: "18px",
@@ -427,7 +387,8 @@ export default function Home() {
 
             <div
               style={{
-                background: "rgba(255,255,255,0.12)",
+                background:
+                  "rgba(255,255,255,0.12)",
                 padding: "30px",
                 borderRadius: "24px",
               }}
@@ -455,12 +416,13 @@ export default function Home() {
                 return (
 
                   <div
-                    key={capsule.tokenId}
+                    key={capsule.id}
                     style={{
                       position: "relative",
                       overflow: "hidden",
                       borderRadius: "28px",
-                      background: "rgba(255,255,255,0.12)",
+                      background:
+                        "rgba(255,255,255,0.12)",
                     }}
                   >
 
@@ -526,7 +488,7 @@ export default function Home() {
                           fontWeight: "900",
                         }}
                       >
-                        Capsule #{capsule.tokenId}
+                        Capsule
                       </h3>
 
                     </div>
@@ -548,3 +510,47 @@ export default function Home() {
     </main>
   );
 }
+```
+
+---
+
+# STEP 2
+
+Replace:
+
+```js
+const CONTRACT_ADDRESS = "PASTE_YOUR_CONTRACT_ADDRESS";
+```
+
+with your REAL contract address.
+
+---
+
+# STEP 3
+
+Run:
+
+```bash
+npm install axios ethers
+```
+
+---
+
+# STEP 4
+
+Push:
+
+```bash
+git add .
+git commit -m "Stable MonVault demo"
+git push
+```
+
+After redeploy:
+
+* mint works
+* blurred cards work
+* timers work
+* capsules appear instantly
+* no more ABI/read errors
+
