@@ -1,27 +1,3 @@
-# MonVault — Stable Demo Version (Option 1)
-
-This version:
-
-* keeps minting on-chain ✅
-* uploads images to IPFS ✅
-* stores capsule gallery locally ✅
-* shows blurred images + timers ✅
-* survives page refreshes ✅
-* avoids ALL broken contract read issues ✅
-
----
-
-# STEP 1
-
-Replace your ENTIRE:
-
-```txt
-app/page.js
-```
-
-with THIS:
-
-```jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -511,46 +487,3 @@ export default function Home() {
   );
 }
 ```
-
----
-
-# STEP 2
-
-Replace:
-
-```js
-const CONTRACT_ADDRESS = "PASTE_YOUR_CONTRACT_ADDRESS";
-```
-
-with your REAL contract address.
-
----
-
-# STEP 3
-
-Run:
-
-```bash
-npm install axios ethers
-```
-
----
-
-# STEP 4
-
-Push:
-
-```bash
-git add .
-git commit -m "Stable MonVault demo"
-git push
-```
-
-After redeploy:
-
-* mint works
-* blurred cards work
-* timers work
-* capsules appear instantly
-* no more ABI/read errors
-
