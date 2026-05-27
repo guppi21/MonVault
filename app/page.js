@@ -18,6 +18,8 @@ export default function Home() {
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [capsules, setCapsules] = useState([]);
+  const [activeImage, setActiveImage] = useState(null);
+  const [showRevealEffect, setShowRevealEffect] = useState(false);
 
   async function connectWallet() {
 
@@ -74,12 +76,11 @@ export default function Home() {
 
     const imageHash = imageUpload.data.IpfsHash;
 
-    const imageURL =
-      `https://ipfs.io/ipfs/${imageHash}`;
+    const imageURL = `https://ipfs.io/ipfs/${imageHash}`;
 
     const metadata = {
       name: "MonVault Capsule",
-      description: "NFT Time Capsule",
+      description: "NFT Time Capsule on Monad",
       image: imageURL,
     };
 
@@ -98,6 +99,17 @@ export default function Home() {
         `https://ipfs.io/ipfs/${metadataUpload.data.IpfsHash}`,
       imageURL,
     };
+  }
+
+  function playRevealSound() {
+
+    const audio = new Audio(
+      "https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"
+    );
+
+    audio.volume = 0.7;
+
+    audio.play();
   }
 
   function getRemainingTime(unlockDate) {
@@ -119,10 +131,9 @@ export default function Home() {
 
   function loadLocalCapsules(currentWallet) {
 
-    const saved =
-      localStorage.getItem(
-        `capsules_${currentWallet}`
-      );
+    const saved = localStorage.getItem(
+      `capsules_${currentWallet}`
+    );
 
     if (saved) {
       setCapsules(JSON.parse(saved));
@@ -150,32 +161,27 @@ export default function Home() {
 
       setLoading(true);
 
-      const uploaded =
-        await uploadToIPFS();
+      const uploaded = await uploadToIPFS();
 
       const browserProvider =
         new ethers.BrowserProvider(window.ethereum);
 
-      const signer =
-        await browserProvider.getSigner();
+      const signer = await browserProvider.getSigner();
 
-      const contract =
-        new ethers.Contract(
-          CONTRACT_ADDRESS,
-          ABI,
-          signer
-        );
+      const contract = new ethers.Contract(
+        CONTRACT_ADDRESS,
+        ABI,
+        signer
+      );
 
-      const unlockTimestamp =
-        Math.floor(
-          Date.parse(unlockDate) / 1000
-        );
+      const unlockTimestamp = Math.floor(
+        Date.parse(unlockDate) / 1000
+      );
 
-      const tx =
-        await contract.mintCapsule(
-          uploaded.metadataURI,
-          unlockTimestamp
-        );
+      const tx = await contract.mintCapsule(
+        uploaded.metadataURI,
+        unlockTimestamp
+      );
 
       await tx.wait();
 
@@ -256,6 +262,7 @@ export default function Home() {
           style={{
             opacity: 0.85,
             marginBottom: "30px",
+            fontSize: "18px",
           }}
         >
           NFT Time Capsules on Monad
@@ -273,6 +280,8 @@ export default function Home() {
             fontWeight: "800",
             cursor: "pointer",
             marginBottom: "30px",
+            boxShadow:
+              "0 0 30px rgba(131,110,249,0.45)",
           }}
         >
           {wallet
@@ -286,6 +295,8 @@ export default function Home() {
             padding: "30px",
             borderRadius: "30px",
             backdropFilter: "blur(16px)",
+            border:
+              "1px solid rgba(255,255,255,0.12)",
           }}
         >
 
@@ -309,6 +320,7 @@ export default function Home() {
                 border: "none",
                 background: "white",
                 color: "#111",
+                fontWeight: "700",
               }}
             />
           </div>
@@ -328,6 +340,8 @@ export default function Home() {
               fontWeight: "900",
               fontSize: "20px",
               cursor: "pointer",
+              boxShadow:
+                "0 0 30px rgba(131,110,249,0.45)",
             }}
           >
             {loading ? "Minting..." : "Mint Time Capsule"}
@@ -399,12 +413,30 @@ export default function Home() {
                       borderRadius: "28px",
                       background:
                         "rgba(255,255,255,0.12)",
+                      border:
+                        "1px solid rgba(255,255,255,0.12)",
                     }}
                   >
 
                     <img
                       src={capsule.image}
                       alt="capsule"
+                      onClick={() => {
+
+                        if (unlocked) {
+
+                          playRevealSound();
+
+                          setShowRevealEffect(true);
+
+                          setTimeout(() => {
+                            setShowRevealEffect(false);
+                            setActiveImage(capsule.image);
+                          }, 1200);
+
+                        }
+
+                      }}
                       style={{
                         width: "100%",
                         height: "280px",
@@ -412,47 +444,85 @@ export default function Home() {
                         filter: unlocked
                           ? "blur(0px)"
                           : "blur(18px)",
+                        cursor: unlocked
+                          ? "pointer"
+                          : "default",
+                        transition: "0.4s",
                       }}
                     />
 
-                    {!unlocked && (
+                    {!unlocked ? (
+
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform:
+                          "translate(-50%,-50%)",
+                        background:
+                          "rgba(0,0,0,0.6)",
+                        padding: "18px 24px",
+                        borderRadius: "20px",
+                        textAlign: "center",
+                      }}
+                    >
 
                       <div
                         style={{
-                          position: "absolute",
-                          top: "50%",
-                          left: "50%",
-                          transform:
-                            "translate(-50%,-50%)",
-                          background:
-                            "rgba(0,0,0,0.6)",
-                          padding: "18px 24px",
-                          borderRadius: "20px",
-                          textAlign: "center",
+                          fontSize: "32px",
                         }}
                       >
-
-                        <div
-                          style={{
-                            fontSize: "32px",
-                          }}
-                        >
-                          ⏳
-                        </div>
-
-                        <div
-                          style={{
-                            marginTop: "10px",
-                            fontWeight: "900",
-                            fontSize: "20px",
-                          }}
-                        >
-                          {getRemainingTime(
-                            capsule.unlockDate
-                          )}
-                        </div>
-
+                        ⏳
                       </div>
+
+                      <div
+                        style={{
+                          marginTop: "10px",
+                          fontWeight: "900",
+                          fontSize: "20px",
+                        }}
+                      >
+                        {getRemainingTime(
+                          capsule.unlockDate
+                        )}
+                      </div>
+
+                    </div>
+
+                    ) : (
+
+                    <div
+                      onClick={() => {
+
+                        playRevealSound();
+
+                        setShowRevealEffect(true);
+
+                        setTimeout(() => {
+                          setShowRevealEffect(false);
+                          setActiveImage(capsule.image);
+                        }, 1200);
+
+                      }}
+                      style={{
+                        position: "absolute",
+                        bottom: "18px",
+                        left: "50%",
+                        transform:
+                          "translateX(-50%)",
+                        background:
+                          "linear-gradient(to right,#836EF9,#A78BFA)",
+                        padding: "12px 20px",
+                        borderRadius: "18px",
+                        fontWeight: "900",
+                        cursor: "pointer",
+                        boxShadow:
+                          "0 0 30px rgba(131,110,249,0.45)",
+                      }}
+                    >
+                      Reveal Image 🎉
+                    </div>
 
                     )}
 
@@ -483,6 +553,66 @@ export default function Home() {
 
       </div>
 
+      {showRevealEffect && (
+
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          background:
+            "radial-gradient(circle,#A78BFA 0%,#000000 70%)",
+          zIndex: 9998,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+
+        <div
+          style={{
+            fontSize: "82px",
+          }}
+        >
+          🎉✨🎊
+        </div>
+
+      </div>
+
+      )}
+
+      {activeImage && (
+        <div
+          onClick={() => setActiveImage(null)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.88)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "20px",
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <img
+            src={activeImage}
+            alt="fullscreen"
+            style={{
+              maxWidth: "92%",
+              maxHeight: "92%",
+              borderRadius: "28px",
+              boxShadow:
+                "0 0 50px rgba(131,110,249,0.45)",
+            }}
+          />
+        </div>
+      )}
+
     </main>
   );
 }
+
