@@ -260,7 +260,7 @@ export default function Home() {
 
         <h1
           style={{
-            fontSize: "84px",
+            fontSize: "78px",
             fontWeight: "900",
           }}
         >
@@ -363,9 +363,13 @@ export default function Home() {
               src={preview}
               alt="preview"
               style={{
-                width: "100%",
+                width: "180px",
+                height: "180px",
+                objectFit: "cover",
                 marginTop: "24px",
-                borderRadius: "24px",
+                borderRadius: "22px",
+                border:
+                  "2px solid rgba(255,255,255,0.2)",
               }}
             />
           )}
@@ -376,7 +380,7 @@ export default function Home() {
 
           <h2
             style={{
-              fontSize: "52px",
+              fontSize: "44px",
               marginBottom: "24px",
               fontWeight: "900",
             }}
@@ -403,8 +407,8 @@ export default function Home() {
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "repeat(auto-fit,minmax(280px,1fr))",
-                gap: "24px",
+                  "repeat(auto-fit,minmax(220px,1fr))",
+                gap: "22px",
               }}
             >
 
@@ -421,7 +425,7 @@ export default function Home() {
                     style={{
                       position: "relative",
                       overflow: "hidden",
-                      borderRadius: "28px",
+                      borderRadius: "24px",
                       background:
                         "rgba(255,255,255,0.12)",
                       border:
@@ -429,129 +433,135 @@ export default function Home() {
                     }}
                   >
 
-                    <img
-                      src={capsule.image}
-                      alt="capsule"
-                      onClick={() => {
-
-                        if (unlocked) {
-
-                          playRevealSound();
-
-                          setShowRevealEffect(true);
-
-                          setTimeout(() => {
-
-                            setShowRevealEffect(false);
-
-                            setActiveImage(
-                              capsule.image
-                            );
-
-                          }, 1200);
-
-                        }
-
-                      }}
-                      style={{
-                        width: "100%",
-                        height: "280px",
-                        objectFit: "cover",
-                        filter: unlocked
-                          ? "blur(0px)"
-                          : "blur(18px)",
-                        cursor: unlocked
-                          ? "pointer"
-                          : "default",
-                        transition: "0.3s",
-                      }}
-                    />
-
-                    {!unlocked ? (
-
                     <div
                       style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform:
-                          "translate(-50%,-50%)",
-                        background:
-                          "rgba(0,0,0,0.6)",
-                        padding: "18px 24px",
-                        borderRadius: "20px",
-                        textAlign: "center",
+                        position: "relative",
                       }}
                     >
 
-                      <div
+                      <img
+                        src={capsule.image}
+                        alt="capsule"
                         style={{
-                          fontSize: "32px",
+                          width: "100%",
+                          height: "220px",
+                          objectFit: "cover",
+                          filter: unlocked
+                            ? "blur(0px)"
+                            : "blur(18px)",
+                          transition: "0.4s",
                         }}
-                      >
-                        ⏳
-                      </div>
+                      />
 
-                      <div
-                        style={{
-                          marginTop: "10px",
-                          fontWeight: "900",
-                          fontSize: "20px",
-                        }}
-                      >
-                        {getRemainingTime(
-                          capsule.unlockDate
-                        )}
-                      </div>
+                      {!unlocked ? (
+
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background:
+                              "rgba(0,0,0,0.35)",
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              background:
+                                "rgba(0,0,0,0.65)",
+                              padding: "18px 22px",
+                              borderRadius: "18px",
+                              textAlign: "center",
+                            }}
+                          >
+
+                            <div
+                              style={{
+                                fontSize: "28px",
+                              }}
+                            >
+                              ⏳
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: "10px",
+                                fontWeight: "900",
+                                fontSize: "18px",
+                              }}
+                            >
+                              {getRemainingTime(
+                                capsule.unlockDate
+                              )}
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      ) : (
+
+                        <div
+                          onClick={() => {
+
+                            playRevealSound();
+
+                            setShowRevealEffect(true);
+
+                            setTimeout(() => {
+
+                              setShowRevealEffect(false);
+
+                              setActiveImage(
+                                capsule.image
+                              );
+
+                            }, 1000);
+
+                          }}
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            background:
+                              "rgba(0,0,0,0.12)",
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              background:
+                                "linear-gradient(to right,#836EF9,#A78BFA)",
+                              padding: "14px 22px",
+                              borderRadius: "18px",
+                              fontWeight: "900",
+                              boxShadow:
+                                "0 0 30px rgba(131,110,249,0.45)",
+                            }}
+                          >
+                            Reveal Capsule 🎉
+                          </div>
+
+                        </div>
+
+                      )}
 
                     </div>
-
-                    ) : (
 
                     <div
-                      onClick={() => {
-
-                        playRevealSound();
-
-                        setShowRevealEffect(true);
-
-                        setTimeout(() => {
-
-                          setShowRevealEffect(false);
-
-                          setActiveImage(
-                            capsule.image
-                          );
-
-                        }, 1200);
-
-                      }}
                       style={{
-                        position: "absolute",
-                        bottom: "18px",
-                        left: "50%",
-                        transform:
-                          "translateX(-50%)",
-                        background:
-                          "linear-gradient(to right,#836EF9,#A78BFA)",
-                        padding: "12px 20px",
-                        borderRadius: "18px",
-                        fontWeight: "900",
-                        cursor: "pointer",
-                        boxShadow:
-                          "0 0 30px rgba(131,110,249,0.45)",
+                        padding: "18px",
                       }}
                     >
-                      Reveal Image 🎉
-                    </div>
-
-                    )}
-
-                    <div style={{ padding: "20px" }}>
 
                       <h3
                         style={{
-                          fontSize: "32px",
+                          fontSize: "24px",
                           fontWeight: "900",
                         }}
                       >
@@ -628,8 +638,8 @@ export default function Home() {
           src={activeImage}
           alt="fullscreen"
           style={{
-            maxWidth: "92%",
-            maxHeight: "92%",
+            maxWidth: "85%",
+            maxHeight: "85%",
             borderRadius: "28px",
             boxShadow:
               "0 0 50px rgba(131,110,249,0.45)",
